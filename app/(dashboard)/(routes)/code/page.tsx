@@ -5,7 +5,7 @@ import * as z from "zod";
 import axios from "axios";
 import { Code } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+//import React, { useState } from "react";
 import { toast } from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import { useRouter } from "next/navigation";
@@ -23,12 +23,14 @@ import { Empty } from "@/components/ui/empty";
 import { useProModal } from "@/hooks/use-pro-modal";
 
 import { formSchema } from "./constants";
+import useClient  from 'next/client';
+
 
 const CodePage = () => {
   const router = useRouter();
   const proModal = useProModal();
-  const [messages, setMessages] = useState<ChatCompletionRequestMessage[]>([]);
-
+ //const [messages, setMessages] = useClient<ChatCompletionRequestMessage[]>([]);
+//useClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -46,10 +48,10 @@ const CodePage = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const userMessage: ChatCompletionRequestMessage = { role: "user", content: values.prompt };
-      const newMessages = [...messages, userMessage];
+     // const newMessages = [...messages, userMessage];
 
-      const response = await axios.post('/api/code', { messages: newMessages });
-      setMessages((current) => [...current, userMessage, response.data]);
+      //const response = await axios.post('/api/code', { messages: newMessages });
+     // setMessages((current: any) => [...current, userMessage, response.data]);
 
       form.reset();
     } catch (error: any) {
