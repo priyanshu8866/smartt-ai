@@ -1,28 +1,39 @@
 import { auth } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
-import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
-
+import ChatCompletionRequestMessage  from "openai"
+import  Configuration from "openai";
+import OpenAI from "openai"
+import { incrementApiLimit, checkApiLimit, } from "@/lib/api-limit";
 import { checkSubscription } from "@/lib/subscription";
-import { incrementApiLimit, checkApiLimit } from "@/lib/api-limit";
-
+ 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const openai = new OpenAIApi(configuration);
+const openai = new OpenAI //(configuration);
+interface ChatMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
 
-const instructionMessage: ChatCompletionRequestMessage = {
+// Your instruction message
+const instructionMessage: ChatMessage = {
   role: "system",
-  content: "You are a code generator. You must answer only in markdown code snippets. Use code comments for explanations."
+  content: "You are a code generator. You must answer only in markdown code snippets. Use code comments for explanations.",
 };
 
-export async function POST(
-  req: Request
-) {
+
+
+//const instructionMessage: ChatCompletionRequestMessage = {
+  //role: "system",
+  //content: "You are a code generator. You must answer only in markdown code snippets. Use code comments for explanations.",
+//}; 
+
+export async function POST(req: Request) {
   try {
     const { userId } = auth();
     const body = await req.json();
-    const { messages  } = body;
+    const { messages } = body;
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
@@ -43,18 +54,18 @@ export async function POST(
       return new NextResponse("Free trial has expired. Please upgrade to pro.", { status: 403 });
     }
 
-    const response = await openai.createChatCompletion({
+    const response = await  openai.chat.completions.create({
       model: "gpt-3.5-turbo",
-      messages: [instructionMessage, ...messages]
+      messages: [instructionMessage, ...messages],
     });
 
     if (!isPro) {
       await incrementApiLimit();
     }
 
-    return NextResponse.json(response.data.choices[0].message);
+    return NextResponse.json(response.choices[0].message);
   } catch (error) {
     console.log('[CODE_ERROR]', error);
     return new NextResponse("Internal Error", { status: 500 });
   }
-};
+}
